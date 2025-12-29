@@ -12,7 +12,17 @@ app.get('/info', async (req, res) => {
     if (!url) return res.status(400).json({ status: 'error', message: 'No URL provided' });
 
     try {
-        const result = await instagramGetUrl(url);
+        // 🔧 FIX: Handle different library export styles
+        const igFetch = (typeof instagramGetUrl === 'function') ? instagramGetUrl : instagramGetUrl.default;
+        
+        if (typeof igFetch !== 'function') {
+            return res.status(500).json({ 
+                status: 'error', 
+                message: 'Library exported incorrectly. Try updating package.json.' 
+            });
+        }
+
+        const result = await igFetch(url);
         res.json({ status: 'success', result: result });
     } catch (e) {
         res.status(500).json({ status: 'error', message: e.message });
