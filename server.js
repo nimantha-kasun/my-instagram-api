@@ -1,5 +1,5 @@
 const express = require('express');
-const instagramGetUrl = require('instagram-url-direct');
+const { insta } = require('insta-package');
 const cors = require('cors');
 
 const app = express();
@@ -12,17 +12,11 @@ app.get('/info', async (req, res) => {
     if (!url) return res.status(400).json({ status: 'error', message: 'No URL provided' });
 
     try {
-        // 🔧 FIX: Handle different library export styles
-        const igFetch = (typeof instagramGetUrl === 'function') ? instagramGetUrl : instagramGetUrl.default;
-        
-        if (typeof igFetch !== 'function') {
-            return res.status(500).json({ 
-                status: 'error', 
-                message: 'Library exported incorrectly. Try updating package.json.' 
-            });
+        const result = await insta(url);
+        // Robust check for results
+        if (!result || (Array.isArray(result) && result.length === 0)) {
+            throw new Error('No media found for this URL.');
         }
-
-        const result = await igFetch(url);
         res.json({ status: 'success', result: result });
     } catch (e) {
         res.status(500).json({ status: 'error', message: e.message });
